@@ -46,7 +46,7 @@ CV_FOLDS = 5
 SCORING = "f1"
 
 # MLflow Configuration
-MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+MLFLOW_TRACKING_URI = "http://host.docker.internal:5000"
 MLFLOW_EXPERIMENT_NAME = "customer-churn-prediction"
 REGISTERED_MODEL_NAME = "customer-churn-model"
 
