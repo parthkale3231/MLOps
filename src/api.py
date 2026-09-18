@@ -9,7 +9,7 @@ Provides:
 
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException, status
@@ -21,7 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from src.config import ALL_FEATURES, MODEL_PATH
+if __package__ is None or __package__ == "":
+    from src.config import ALL_FEATURES, MODEL_PATH
+else:
+    from .config import ALL_FEATURES, MODEL_PATH
 
 # ---------------------------------------------------------------------------
 # FastAPI Application & Middleware
@@ -83,8 +86,8 @@ class Customer(BaseModel):
         description="The monthly fee billed to the customer.",
         examples=[85.50],
     )
-    TotalCharges: float = Field(
-        ...,
+    TotalCharges: Optional[float] = Field(
+        default=0.0,
         ge=0.0,
         description="The total amount billed to the customer across tenure.",
         examples=[256.50],
@@ -119,6 +122,18 @@ class Customer(BaseModel):
             ]
         }
     }
+
+
+def _customer_to_dict(c: Customer) -> dict:
+    """Safely converts Customer Pydantic model to dictionary across Pydantic v1/v2."""
+    if hasattr(c, "model_dump"):
+        data = c.model_dump()
+    else:
+        data = c.dict()
+
+    if data.get("TotalCharges") is None:
+        data["TotalCharges"] = round(float(data.get("tenure", 0)) * float(data.get("MonthlyCharges", 0.0)), 2)
+    return data
 
 
 class PredictionResponse(BaseModel):
@@ -160,9 +175,16 @@ def root():
 @app.get("/health", tags=["Health"])
 def health():
     """Health check endpoint indicating service and model readiness."""
-    is_loaded = _model is not None or MODEL_PATH.exists()
+    global _model
+    if _model is None and MODEL_PATH.exists():
+        try:
+            _model = get_model()
+        except Exception:
+            _model = None
+
+    is_loaded = _model is not None
     return {
-        "status": "healthy",
+        "status": "healthy" if is_loaded else "model_unavailable",
         "model_loaded": is_loaded,
         "model_path": str(MODEL_PATH),
     }
@@ -178,10 +200,15 @@ def predict(customer: Customer):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(fnf_err),
         )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to load model: {str(exc)}",
+        )
 
     try:
-        # Prepare DataFrame conforming to expected features
-        data = pd.DataFrame([customer.model_dump()])
+        # Prepare DataFrame conforming to expected features and ordering
+        data = pd.DataFrame([_customer_to_dict(customer)])[ALL_FEATURES]
         prediction = int(model.predict(data)[0])
         churn_prob = float(model.predict_proba(data)[0][1])
 
@@ -207,8 +234,11 @@ def predict(customer: Customer):
 
 
 @app.post("/predict/batch", response_model=BatchPredictionResponse, tags=["Inference"])
-def predict_batch(batch: BatchCustomerInput):
-    """Predict churn probability and classification for multiple customers."""
+def predict_batch(batch: Union[BatchCustomerInput, List[Customer]]):
+    """Predict churn probability and classification for multiple customers.
+
+    Accepts either `{"customers": [...]}` or a direct list `[...]`.
+    """
     try:
         model = get_model()
     except FileNotFoundError as fnf_err:
@@ -216,15 +246,22 @@ def predict_batch(batch: BatchCustomerInput):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(fnf_err),
         )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to load model: {str(exc)}",
+        )
 
-    if not batch.customers:
+    customers = batch.customers if isinstance(batch, BatchCustomerInput) else batch
+    if not customers:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The batch customer list is empty.",
         )
 
     try:
-        data = pd.DataFrame([c.model_dump() for c in batch.customers])
+        records = [_customer_to_dict(c) for c in customers]
+        data = pd.DataFrame(records)[ALL_FEATURES]
         predictions = model.predict(data)
         probabilities = model.predict_proba(data)
 
