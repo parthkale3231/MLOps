@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Environment variables
+.env
+
+# Data files (keep raw/large data out of version control)
+data/*.csv
+data/*.parquet
+data/*.xlsx
+!data/.gitkeep
+
+# Models and artifacts (keep large weights out of version control)
+models/*.pkl
+models/*.joblib
+models/*.bin
+models/*.onnx
+!models/.gitkeep
+
+# IDEs
+.vscode/
+.idea/

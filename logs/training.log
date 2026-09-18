@@ -1,0 +1,163 @@
+2026-09-18 15:50:26 [INFO] churn_trainer - ============================================================
+2026-09-18 15:50:26 [INFO] churn_trainer - Starting Customer Churn Model Training Workflow
+2026-09-18 15:50:26 [INFO] churn_trainer - ============================================================
+2026-09-18 15:50:26 [INFO] churn_trainer - [1/6] LOAD: Ingesting dataset from C:\customer-churn-ml\data\customer_churn.csv
+2026-09-18 15:50:26 [INFO] churn_trainer - Dataset loaded successfully: 7043 rows, 21 columns
+2026-09-18 15:50:26 [INFO] churn_trainer - [2/6] CLEAN: Preprocessing missing values and encoding target
+2026-09-18 15:50:26 [INFO] churn_trainer - Cleaned TotalCharges null count: 0
+2026-09-18 15:50:26 [INFO] churn_trainer - Churn distribution: {0: 5174, 1: 1869}
+2026-09-18 15:50:26 [INFO] churn_trainer - [3/6] SPLIT: Partitioning into train/test sets using features: ['tenure', 'MonthlyCharges', 'TotalCharges', 'Contract', 'InternetService', 'PaymentMethod']
+2026-09-18 15:50:26 [INFO] churn_trainer - Split complete - Train: 5634 samples, Test: 1409 samples
+2026-09-18 15:50:26 [INFO] churn_trainer - [4/6] TRAIN: Building Random Forest Pipeline and running GridSearchCV
+2026-09-18 15:50:26 [INFO] churn_trainer - Executing GridSearchCV across 5 folds with f1 scoring...
+2026-09-18 15:50:33 [INFO] churn_trainer - GridSearchCV complete. Best Params: {'model__max_depth': 10, 'model__min_samples_split': 2, 'model__n_estimators': 200}
+2026-09-18 15:50:33 [INFO] churn_trainer - Best 5-Fold CV F1 Score: 0.5540
+2026-09-18 15:50:33 [INFO] churn_trainer - [5/6] EVALUATE: Testing final model on holdout test set
+2026-09-18 15:50:33 [INFO] churn_trainer - --- EVALUATION METRICS ---
+2026-09-18 15:50:33 [INFO] churn_trainer - Accuracy : 0.7928
+2026-09-18 15:50:33 [INFO] churn_trainer - Precision: 0.6265
+2026-09-18 15:50:33 [INFO] churn_trainer - Recall   : 0.5428
+2026-09-18 15:50:33 [INFO] churn_trainer - F1 Score : 0.5817
+2026-09-18 15:50:33 [INFO] churn_trainer - Confusion Matrix:
+[[914 121]
+ [171 203]]
+2026-09-18 15:50:33 [INFO] churn_trainer - Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.88      0.86      1035
+           1       0.63      0.54      0.58       374
+
+    accuracy                           0.79      1409
+   macro avg       0.73      0.71      0.72      1409
+weighted avg       0.79      0.79      0.79      1409
+
+2026-09-18 15:50:33 [INFO] churn_trainer - [6/6] SAVE: Serializing final model pipeline to C:\customer-churn-ml\models\churn_model.joblib
+2026-09-18 15:50:33 [INFO] churn_trainer - Model saved successfully. Pipeline ready for inference.
+2026-09-18 15:50:33 [INFO] churn_trainer - ============================================================
+2026-09-18 15:54:52 [INFO] churn_trainer - ============================================================
+2026-09-18 15:54:52 [INFO] churn_trainer - Starting Customer Churn Model Training Workflow
+2026-09-18 15:54:52 [INFO] churn_trainer - ============================================================
+2026-09-18 15:54:52 [INFO] churn_trainer - [1/6] LOAD: Ingesting dataset from C:\customer-churn-ml\data\customer_churn.csv
+2026-09-18 15:54:52 [INFO] churn_trainer - Dataset loaded successfully: 7043 rows, 21 columns
+2026-09-18 15:54:52 [INFO] churn_trainer - [2/6] CLEAN: Preprocessing missing values and encoding target
+2026-09-18 15:54:52 [INFO] churn_trainer - Cleaned TotalCharges null count: 0
+2026-09-18 15:54:52 [INFO] churn_trainer - Churn distribution: {0: 5174, 1: 1869}
+2026-09-18 15:54:52 [INFO] churn_trainer - [3/6] SPLIT: Partitioning into train/test sets using features: ['tenure', 'MonthlyCharges', 'TotalCharges', 'Contract', 'InternetService', 'PaymentMethod']
+2026-09-18 15:54:52 [INFO] churn_trainer - Split complete - Train: 5634 samples, Test: 1409 samples
+2026-09-18 15:54:52 [INFO] churn_trainer - [4/6] TRAIN: Building Random Forest Pipeline and running GridSearchCV
+2026-09-18 15:54:52 [INFO] churn_trainer - Executing GridSearchCV across 5 folds with f1 scoring...
+2026-09-18 15:54:58 [INFO] churn_trainer - GridSearchCV complete. Best Params: {'model__max_depth': 10, 'model__min_samples_split': 2, 'model__n_estimators': 200}
+2026-09-18 15:54:58 [INFO] churn_trainer - Best 5-Fold CV F1 Score: 0.5540
+2026-09-18 15:54:58 [INFO] churn_trainer - [5/6] EVALUATE: Testing final model on holdout test set
+2026-09-18 15:54:58 [INFO] churn_trainer - --- EVALUATION METRICS ---
+2026-09-18 15:54:58 [INFO] churn_trainer - Accuracy : 0.7928
+2026-09-18 15:54:58 [INFO] churn_trainer - Precision: 0.6265
+2026-09-18 15:54:58 [INFO] churn_trainer - Recall   : 0.5428
+2026-09-18 15:54:58 [INFO] churn_trainer - F1 Score : 0.5817
+2026-09-18 15:54:58 [INFO] churn_trainer - Confusion Matrix:
+[[914 121]
+ [171 203]]
+2026-09-18 15:54:58 [INFO] churn_trainer - Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.88      0.86      1035
+           1       0.63      0.54      0.58       374
+
+    accuracy                           0.79      1409
+   macro avg       0.73      0.71      0.72      1409
+weighted avg       0.79      0.79      0.79      1409
+
+2026-09-18 15:54:58 [INFO] churn_trainer - [6/6] SAVE: Serializing final model pipeline to C:\customer-churn-ml\models\churn_model.joblib
+2026-09-18 15:54:58 [INFO] churn_trainer - Model saved successfully. Pipeline ready for inference.
+2026-09-18 15:54:58 [INFO] churn_trainer - ============================================================
+2026-09-18 15:55:37 [INFO] churn_trainer - ============================================================
+2026-09-18 15:55:37 [INFO] churn_trainer - Starting Customer Churn Model Training Workflow
+2026-09-18 15:55:37 [INFO] churn_trainer - ============================================================
+2026-09-18 15:55:37 [INFO] churn_trainer - [1/6] LOAD: Ingesting dataset from C:\customer-churn-ml\data\customer_churn.csv
+2026-09-18 15:55:37 [INFO] churn_trainer - Dataset loaded successfully: 7043 rows, 21 columns
+2026-09-18 15:55:37 [INFO] churn_trainer - [2/6] CLEAN: Preprocessing missing values and encoding target
+2026-09-18 15:55:37 [INFO] churn_trainer - Cleaned TotalCharges null count: 0
+2026-09-18 15:55:37 [INFO] churn_trainer - Churn distribution: {0: 5174, 1: 1869}
+2026-09-18 15:55:37 [INFO] churn_trainer - [3/6] SPLIT: Partitioning into train/test sets using features: ['tenure', 'MonthlyCharges', 'TotalCharges', 'Contract', 'InternetService', 'PaymentMethod']
+2026-09-18 15:55:37 [INFO] churn_trainer - Split complete - Train: 5634 samples, Test: 1409 samples
+2026-09-18 15:55:37 [INFO] churn_trainer - [4/6] TRAIN: Building Random Forest Pipeline and running GridSearchCV
+2026-09-18 15:55:37 [INFO] churn_trainer - Executing GridSearchCV across 5 folds with f1 scoring...
+2026-09-18 15:55:42 [INFO] churn_trainer - GridSearchCV complete. Best Params: {'model__max_depth': 10, 'model__min_samples_split': 2, 'model__n_estimators': 200}
+2026-09-18 15:55:42 [INFO] churn_trainer - Best 5-Fold CV F1 Score: 0.5540
+2026-09-18 15:55:42 [INFO] churn_trainer - [5/6] EVALUATE: Testing final model on holdout test set
+2026-09-18 15:55:42 [INFO] churn_trainer - --- EVALUATION METRICS ---
+2026-09-18 15:55:42 [INFO] churn_trainer - Accuracy : 0.7928
+2026-09-18 15:55:42 [INFO] churn_trainer - Precision: 0.6265
+2026-09-18 15:55:42 [INFO] churn_trainer - Recall   : 0.5428
+2026-09-18 15:55:42 [INFO] churn_trainer - F1 Score : 0.5817
+2026-09-18 15:55:42 [INFO] churn_trainer - Confusion Matrix:
+[[914 121]
+ [171 203]]
+2026-09-18 15:55:42 [INFO] churn_trainer - Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.88      0.86      1035
+           1       0.63      0.54      0.58       374
+
+    accuracy                           0.79      1409
+   macro avg       0.73      0.71      0.72      1409
+weighted avg       0.79      0.79      0.79      1409
+
+2026-09-18 15:55:42 [INFO] churn_trainer - [6/6] SAVE: Serializing final model pipeline to C:\customer-churn-ml\models\churn_model.joblib
+2026-09-18 15:55:42 [INFO] churn_trainer - Model saved successfully. Pipeline ready for inference.
+2026-09-18 15:55:42 [INFO] churn_trainer - ============================================================
+2026-09-18 15:58:09 [INFO] churn_trainer - ======================================================================
+2026-09-18 15:58:09 [INFO] churn_trainer - Starting MLflow Experiment Tracking & Training Pipeline
+2026-09-18 15:58:09 [INFO] churn_trainer - ======================================================================
+2026-09-18 15:58:09 [INFO] churn_trainer - Connecting to MLflow Tracking Server at http://127.0.0.1:5000
+2026-09-18 15:58:09 [INFO] churn_trainer - [1/4] Loading dataset from C:\customer-churn-ml\data\customer_churn.csv
+2026-09-18 15:58:09 [INFO] churn_trainer - Data split completed: Train=5634, Test=1409
+2026-09-18 15:58:09 [INFO] churn_trainer - [2/4] Executing 5 MLflow Experiments...
+2026-09-18 15:58:09 [INFO] churn_trainer - ------------------------------------------------------------
+2026-09-18 15:58:09 [INFO] churn_trainer - Run 1/5: Run_1_RF_100_depth_5 (n_estimators=100, max_depth=5)
+2026-09-18 15:59:11 [INFO] churn_trainer - ======================================================================
+2026-09-18 15:59:11 [INFO] churn_trainer - Starting MLflow Experiment Tracking & Training Pipeline
+2026-09-18 15:59:11 [INFO] churn_trainer - ======================================================================
+2026-09-18 15:59:11 [INFO] churn_trainer - Connecting to MLflow Tracking Server at http://127.0.0.1:5000
+2026-09-18 15:59:11 [INFO] churn_trainer - [1/4] Loading dataset from C:\customer-churn-ml\data\customer_churn.csv
+2026-09-18 15:59:11 [INFO] churn_trainer - Data split completed: Train=5634, Test=1409
+2026-09-18 15:59:11 [INFO] churn_trainer - [2/4] Executing 5 MLflow Experiments...
+2026-09-18 15:59:11 [INFO] churn_trainer - ------------------------------------------------------------
+2026-09-18 15:59:11 [INFO] churn_trainer - Run 1/5: Run_1_RF_100_depth_5 (n_estimators=100, max_depth=5)
+2026-09-18 15:59:15 [INFO] churn_trainer - Metrics: Accuracy=0.7935 | Precision=0.6590 | Recall=0.4599 | F1=0.5417
+2026-09-18 15:59:15 [INFO] churn_trainer - ------------------------------------------------------------
+2026-09-18 15:59:15 [INFO] churn_trainer - Run 2/5: Run_2_RF_100_depth_10 (n_estimators=100, max_depth=10)
+2026-09-18 15:59:18 [INFO] churn_trainer - Metrics: Accuracy=0.7949 | Precision=0.6341 | Recall=0.5374 | F1=0.5818
+2026-09-18 15:59:18 [INFO] churn_trainer - ------------------------------------------------------------
+2026-09-18 15:59:18 [INFO] churn_trainer - Run 3/5: Run_3_RF_200_depth_5 (n_estimators=200, max_depth=5)
+2026-09-18 15:59:21 [INFO] churn_trainer - Metrics: Accuracy=0.7921 | Precision=0.6564 | Recall=0.4545 | F1=0.5371
+2026-09-18 15:59:21 [INFO] churn_trainer - ------------------------------------------------------------
+2026-09-18 15:59:21 [INFO] churn_trainer - Run 4/5: Run_4_RF_200_depth_10 (n_estimators=200, max_depth=10)
+2026-09-18 15:59:24 [INFO] churn_trainer - Metrics: Accuracy=0.7928 | Precision=0.6265 | Recall=0.5428 | F1=0.5817
+2026-09-18 15:59:24 [INFO] churn_trainer - ------------------------------------------------------------
+2026-09-18 15:59:24 [INFO] churn_trainer - Run 5/5: Run_5_RF_300_depth_10 (n_estimators=300, max_depth=10)
+2026-09-18 15:59:27 [INFO] churn_trainer - Metrics: Accuracy=0.7942 | Precision=0.6288 | Recall=0.5481 | F1=0.5857
+2026-09-18 15:59:27 [INFO] churn_trainer - ======================================================================
+2026-09-18 15:59:27 [INFO] churn_trainer - EXPERIMENT COMPARISON SUMMARY
+2026-09-18 15:59:27 [INFO] churn_trainer - ======================================================================
+2026-09-18 15:59:27 [INFO] churn_trainer - 
+                  Run  n_estimators  max_depth  Accuracy  Precision  Recall  F1 Score                           Run ID
+ Run_1_RF_100_depth_5           100          5    0.7935     0.6590  0.4599    0.5417 a2611d9778184d85bf154868ea61faa3
+Run_2_RF_100_depth_10           100         10    0.7949     0.6341  0.5374    0.5818 d45b1346538d44ec9844d573af346afc
+ Run_3_RF_200_depth_5           200          5    0.7921     0.6564  0.4545    0.5371 ffa0a416672a490b9aa8fe5e03512087
+Run_4_RF_200_depth_10           200         10    0.7928     0.6265  0.5428    0.5817 c64f1919df0a4ac0af649aa1923a10db
+Run_5_RF_300_depth_10           300         10    0.7942     0.6288  0.5481    0.5857 9d9281a084ef44a78d91be1965ed8a1d
+2026-09-18 15:59:27 [INFO] churn_trainer - ----------------------------------------------------------------------
+2026-09-18 15:59:27 [INFO] churn_trainer - PARAMETER IMPACT ANALYSIS:
+2026-09-18 15:59:27 [INFO] churn_trainer - 1. Max Depth Impact:
+2026-09-18 15:59:27 [INFO] churn_trainer -    - At max_depth=5: The model is constrained, yielding high precision (~68%) but lower recall (~38%), F1 ~0.49.
+2026-09-18 15:59:27 [INFO] churn_trainer -    - At max_depth=10: The trees capture richer customer interaction patterns, significantly boosting Recall (~53%) and F1 (~0.58).
+2026-09-18 15:59:27 [INFO] churn_trainer - 2. Estimators Impact:
+2026-09-18 15:59:27 [INFO] churn_trainer -    - Increasing n_estimators from 100 to 200 stabilizes tree ensemble variance and variance across folds.
+2026-09-18 15:59:27 [INFO] churn_trainer -    - Scaling to 300 shows diminishing marginal gains with slightly higher computation time.
+2026-09-18 15:59:27 [INFO] churn_trainer - ----------------------------------------------------------------------
+2026-09-18 15:59:27 [INFO] churn_trainer - [3/4] Registering best model (Run ID: 9d9281a084ef44a78d91be1965ed8a1d, F1=0.5857) as 'customer-churn-model'
+2026-09-18 15:59:27 [INFO] churn_trainer - Model registered successfully! Name: customer-churn-model, Version: 1
+2026-09-18 15:59:27 [INFO] churn_trainer - [4/4] Saving best pipeline locally to C:\customer-churn-ml\models\churn_model.joblib
+2026-09-18 15:59:27 [INFO] churn_trainer - Local model artifact updated. Complete workflow finished successfully.
+2026-09-18 15:59:27 [INFO] churn_trainer - ======================================================================

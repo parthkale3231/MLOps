@@ -1,0 +1,26 @@
+# Core Data Science & ML
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+scipy>=1.10.0
+
+# Gradient Boosting & Modeling
+xgboost>=2.0.0
+lightgbm>=4.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Model Persistence & Utilities
+joblib>=1.3.0
+
+# Jupyter Environment
+jupyterlab>=4.0.0
+ipykernel>=6.25.0
+
+# Testing
+pytest>=8.0.0
+
+# Experiment Tracking & MLOps
+mlflow>=2.10.0

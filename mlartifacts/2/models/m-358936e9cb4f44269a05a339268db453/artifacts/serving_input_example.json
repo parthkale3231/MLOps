@@ -1,0 +1,38 @@
+{
+  "dataframe_split": {
+    "columns": [
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges",
+      "Contract",
+      "InternetService",
+      "PaymentMethod"
+    ],
+    "data": [
+      [
+        35,
+        49.2,
+        1701.65,
+        "Month-to-month",
+        "DSL",
+        "Electronic check"
+      ],
+      [
+        15,
+        75.1,
+        1151.55,
+        "Month-to-month",
+        "Fiber optic",
+        "Mailed check"
+      ],
+      [
+        13,
+        40.55,
+        590.35,
+        "Two year",
+        "DSL",
+        "Mailed check"
+      ]
+    ]
+  }
+}
