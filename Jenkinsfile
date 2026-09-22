@@ -1,10 +1,15 @@
 pipeline {
+
     agent any
 
     environment {
-        MIN_F1 = '0.55'
-        IMAGE_NAME = 'customer-churn-api'
-        PATH = "C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312\\Scripts;C:\\Users\\Parth\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
+        AWS_REGION = 'ap-south-1'
+        AWS_ACCOUNT_ID = '521024928341'
+        ECR_REPOSITORY = 'customer-churn-api'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        AWS_SHARED_CREDENTIALS_FILE = 'C:\\Users\\Parth\\.aws\\credentials'
+        AWS_CONFIG_FILE = 'C:\\Users\\Parth\\.aws\\config'
+        PATH = "C:\\Program Files\\Amazon\\AWSCLIV2;C:\\Users\\Parth\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312\\Scripts;${env.PATH}"
     }
 
     stages {
@@ -15,7 +20,7 @@ pipeline {
             }
         }
 
-        stage('Setup Python') {
+        stage('Install Dependencies') {
             steps {
                 bat '''
                     python --version
@@ -26,7 +31,7 @@ pipeline {
             }
         }
 
-        stage('DVC Data') {
+        stage('DVC Pull') {
             steps {
                 bat '''
                     .venv\\Scripts\\dvc.exe config remote.local_storage.url C:/dvc-storage
@@ -37,62 +42,56 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
-            steps {
-                bat '''
-                    .venv\\Scripts\\pytest.exe tests/test_preprocessing.py
-                '''
-            }
-        }
-
         stage('Train Model') {
             steps {
                 bat '''
-                    .venv\\Scripts\\python.exe src/train.py
+                    .venv\\Scripts\\python.exe -m src.train
                 '''
             }
         }
 
-        stage('MLflow') {
-            steps {
-                bat '''
-                    .venv\\Scripts\\python.exe -c "import mlflow; print('MLflow tracking verified')"
-                    if exist mlartifacts dir mlartifacts
-                '''
-            }
-        }
-
-        stage('Model Validation') {
+        stage('Evaluate Model') {
             steps {
                 bat '''
                     set MIN_F1=0.55
-                    .venv\\Scripts\\python.exe src/evaluate.py
+                    .venv\\Scripts\\python.exe -m src.evaluate
                 '''
             }
         }
 
-        stage('API & Integration Tests') {
+        stage('Run Tests') {
             steps {
                 bat '''
-                    .venv\\Scripts\\pytest.exe
+                    .venv\\Scripts\\pytest.exe -q
                 '''
             }
         }
 
-        stage('Model Artifact') {
+        stage('Build Docker Image') {
             steps {
                 bat '''
-                    if not exist models\\churn_model.joblib exit /b 1
-                    echo Model artifact verified: models\\churn_model.joblib
+                    docker build -f Dockerfile.api -t %ECR_REPOSITORY%:%IMAGE_TAG% -t %ECR_REPOSITORY%:latest .
                 '''
             }
         }
 
-        stage('FastAPI Container') {
+        stage('Login to ECR') {
             steps {
-                bat """
-                    docker build -f Dockerfile.api -t %IMAGE_NAME%:%BUILD_NUMBER% -t %IMAGE_NAME%:latest .
-                """
+                bat '''
+                    aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com
+                '''
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                bat '''
+                    docker tag %ECR_REPOSITORY%:%IMAGE_TAG% %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%
+                    docker tag %ECR_REPOSITORY%:%IMAGE_TAG% %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:latest
+
+                    docker push %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%
+                    docker push %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:latest
+                '''
             }
         }
     }
@@ -102,10 +101,10 @@ pipeline {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'models/*.joblib,logs/*.log'
         }
         success {
-            echo "Pipeline succeeded! Container image ${IMAGE_NAME}:${BUILD_NUMBER} is ready."
+            echo "CI/CD Pipeline succeeded! Image pushed to ECR: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}"
         }
         failure {
-            echo "Pipeline failed. Review stage logs above."
+            echo "CI/CD Pipeline failed. Review stage logs above."
         }
     }
 }

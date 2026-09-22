@@ -49,6 +49,8 @@ models/*.joblib
 models/*.bin
 models/*.onnx
 !models/.gitkeep
+mlartifacts/
+mlruns/
 
 # IDEs
 .vscode/
