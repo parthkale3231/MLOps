@@ -1,4 +1,6 @@
 [core]
-    remote = local_storage
+    remote = s3_storage
 ['remote "local_storage"']
     url = C:/dvc-storage
+['remote "s3_storage"']
+    url = s3://customer-churn-ml-parth/customer-churn
