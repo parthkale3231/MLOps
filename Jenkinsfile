@@ -7,9 +7,10 @@ pipeline {
         AWS_ACCOUNT_ID = '521024928341'
         ECR_REPOSITORY = 'customer-churn-api'
         IMAGE_TAG = "${BUILD_NUMBER}"
+        EC2_PUBLIC_IP = '3.7.109.246'
         AWS_SHARED_CREDENTIALS_FILE = 'C:\\Users\\Parth\\.aws\\credentials'
         AWS_CONFIG_FILE = 'C:\\Users\\Parth\\.aws\\config'
-        PATH = "C:\\Program Files\\Amazon\\AWSCLIV2;C:\\Users\\Parth\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312\\Scripts;${env.PATH}"
+        PATH = "C:\\Program Files\\Amazon\\AWSCLIV2;C:\\Windows\\System32\\OpenSSH;C:\\Users\\Parth\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312\\Scripts;${env.PATH}"
     }
 
     stages {
@@ -104,6 +105,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['ec2-deploy-key']) {
+                    bat """
+                        ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% ^
+                        "aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com && ^
+                        docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% && ^
+                        docker stop customer-churn-api 2>/dev/null || true && ^
+                        docker rm customer-churn-api 2>/dev/null || true && ^
+                        docker run -d --name customer-churn-api --restart unless-stopped -p 8000:8000 %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%"
+                    """
+                }
+            }
+        }
     }
 
     post {
@@ -111,7 +127,7 @@ pipeline {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'models/*.joblib,logs/*.log'
         }
         success {
-            echo "CI/CD Pipeline succeeded! Image pushed to ECR: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            echo "CI/CD Pipeline succeeded! Deployed to EC2 (http://${env.EC2_PUBLIC_IP}:8000)"
         }
         failure {
             echo "CI/CD Pipeline failed. Review stage logs above."
