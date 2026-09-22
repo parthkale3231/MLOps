@@ -108,9 +108,17 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                sshagent(['ec2-deploy-key']) {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'ec2-deploy-key',
+                        keyFileVariable: 'SSH_KEY_PATH',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
                     bat """
-                        ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% ^
+                        set TARGET_USER=%SSH_USER%
+                        if "%TARGET_USER%"=="" set TARGET_USER=ubuntu
+                        ssh -i "%SSH_KEY_PATH%" -o StrictHostKeyChecking=no %TARGET_USER%@%EC2_PUBLIC_IP% ^
                         "aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com && ^
                         docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% && ^
                         docker stop customer-churn-api 2>/dev/null || true && ^
