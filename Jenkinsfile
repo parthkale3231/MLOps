@@ -26,32 +26,22 @@ pipeline {
             }
         }
 
-        stage('Pre-Checks') {
-            parallel {
-                stage('Tests') {
-                    steps {
-                        bat '''
-                            .venv\\Scripts\\pytest.exe
-                        '''
-                    }
-                }
+        stage('DVC Data') {
+            steps {
+                bat '''
+                    .venv\\Scripts\\dvc.exe config remote.local_storage.url C:/dvc-storage
+                    .venv\\Scripts\\dvc.exe pull
+                    if not exist data\\customer_churn.csv if exist C:\\customer-churn-ml\\data\\customer_churn.csv copy C:\\customer-churn-ml\\data\\customer_churn.csv data\\customer_churn.csv
+                    .venv\\Scripts\\python.exe -c "from src.config import DATA_PATH; assert DATA_PATH.exists(), f'Data missing: {DATA_PATH}'; print('Dataset confirmed:', DATA_PATH)"
+                '''
+            }
+        }
 
-                stage('DVC Data') {
-                    steps {
-                        bat '''
-                            .venv\\Scripts\\dvc.exe status
-                            .venv\\Scripts\\python.exe -c "from src.config import DATA_PATH; assert DATA_PATH.exists(), f'Data missing: {DATA_PATH}'; print('Dataset confirmed:', DATA_PATH)"
-                        '''
-                    }
-                }
-
-                stage('Docker') {
-                    steps {
-                        bat '''
-                            docker version
-                        '''
-                    }
-                }
+        stage('Unit Tests') {
+            steps {
+                bat '''
+                    .venv\\Scripts\\pytest.exe tests/test_preprocessing.py
+                '''
             }
         }
 
@@ -77,6 +67,14 @@ pipeline {
                 bat '''
                     set MIN_F1=0.55
                     .venv\\Scripts\\python.exe src/evaluate.py
+                '''
+            }
+        }
+
+        stage('API & Integration Tests') {
+            steps {
+                bat '''
+                    .venv\\Scripts\\pytest.exe
                 '''
             }
         }
