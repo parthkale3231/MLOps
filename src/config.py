@@ -45,8 +45,11 @@ TEST_SIZE = 0.2
 CV_FOLDS = 5
 SCORING = "f1"
 
+import os
+
 # MLflow Configuration
-MLFLOW_TRACKING_URI = "http://host.docker.internal:5000"
+DEFAULT_SQLITE_URI = f"sqlite:///{(BASE_DIR / 'mlflow.db').as_posix()}"
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", DEFAULT_SQLITE_URI)
 MLFLOW_EXPERIMENT_NAME = "customer-churn-prediction"
 REGISTERED_MODEL_NAME = "customer-churn-model"
 

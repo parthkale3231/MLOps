@@ -50,6 +50,7 @@ if __package__ is None or __package__ == "":
     from src.config import (
         ALL_FEATURES,
         DATA_PATH,
+        DEFAULT_SQLITE_URI,
         EXPERIMENT_RUNS,
         LOG_PATH,
         LOGS_DIR,
@@ -67,6 +68,7 @@ else:
     from .config import (
         ALL_FEATURES,
         DATA_PATH,
+        DEFAULT_SQLITE_URI,
         EXPERIMENT_RUNS,
         LOG_PATH,
         LOGS_DIR,
@@ -114,9 +116,20 @@ def train_and_track_experiments():
     logger.info("=" * 70)
 
     # 1. Connect to MLflow
-    logger.info("Connecting to MLflow Tracking Server at %s", MLFLOW_TRACKING_URI)
-    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+    tracking_uri = MLFLOW_TRACKING_URI
+    try:
+        logger.info("Connecting to MLflow Tracking Server at %s", tracking_uri)
+        mlflow.set_tracking_uri(tracking_uri)
+        mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+    except Exception as exc:
+        logger.warning(
+            "Could not connect to tracking server '%s' (%s). Falling back to local SQLite database: %s",
+            tracking_uri,
+            exc,
+            DEFAULT_SQLITE_URI,
+        )
+        mlflow.set_tracking_uri(DEFAULT_SQLITE_URI)
+        mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 
     # 2. Ingest & Clean Data
     logger.info("[1/4] Loading dataset from %s", DATA_PATH)
