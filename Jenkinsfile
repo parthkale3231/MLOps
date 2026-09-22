@@ -4,6 +4,7 @@ pipeline {
     environment {
         MIN_F1 = '0.55'
         IMAGE_NAME = 'customer-churn-api'
+        PATH = "C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312;C:\\Users\\Parth\\AppData\\Local\\Programs\\Python\\Python312\\Scripts;C:\\Users\\Parth\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
     }
 
     stages {
