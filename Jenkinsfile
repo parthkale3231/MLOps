@@ -188,6 +188,169 @@ pipeline {
         }
     }
 }
+
+        stage('Deploy to EKS') {
+            steps {
+
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-mlops']
+                ]) {
+
+                    bat '''
+                        @echo off
+
+                        echo ========================================
+                        echo Deploying to Amazon EKS
+                        echo ========================================
+
+                        echo.
+                        echo AWS Identity:
+                        aws sts get-caller-identity
+
+                        echo.
+                        echo ========================================
+                        echo Updating kubeconfig
+                        echo ========================================
+
+                        aws eks update-kubeconfig ^
+                            --region %AWS_REGION% ^
+                            --name customer-churn
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Failed to update kubeconfig
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Checking EKS cluster
+                        echo ========================================
+
+                        kubectl get nodes
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Cannot access EKS cluster
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Creating namespace
+                        echo ========================================
+
+                        kubectl apply -f k8s/namespace.yaml
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Namespace deployment failed
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Applying ConfigMap
+                        echo ========================================
+
+                        kubectl apply -f k8s/configmap.yaml
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: ConfigMap deployment failed
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Applying Deployment
+                        echo ========================================
+
+                        kubectl apply -f k8s/deployment.yaml
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Deployment creation failed
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Applying Service
+                        echo ========================================
+
+                        kubectl apply -f k8s/service.yaml
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Service deployment failed
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Applying HPA
+                        echo ========================================
+
+                        kubectl apply -f k8s/hpa.yaml
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: HPA deployment failed
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Updating Docker image
+                        echo ========================================
+
+                        kubectl set image deployment/customer-churn-api ^
+                            customer-churn-api=%AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% ^
+                            --namespace ml-prod
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Failed to update Kubernetes image
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Waiting for rollout
+                        echo ========================================
+
+                        kubectl rollout status deployment/customer-churn-api ^
+                            --namespace ml-prod ^
+                            --timeout=5m
+
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo ERROR: Kubernetes rollout failed
+                            exit /b 1
+                        )
+
+                        echo.
+                        echo ========================================
+                        echo Kubernetes deployment successful
+                        echo ========================================
+
+                        echo.
+                        echo Pods:
+                        kubectl get pods -n ml-prod
+
+                        echo.
+                        echo Services:
+                        kubectl get svc -n ml-prod
+
+                        echo.
+                        echo HPA:
+                        kubectl get hpa -n ml-prod
+
+                        echo.
+                        echo Deployment:
+                        kubectl get deployment customer-churn-api -n ml-prod
+
+                        echo.
+                        echo ========================================
+                        echo EKS DEPLOYMENT COMPLETE
+                        echo ========================================
+                    '''
+                }
+            }
+        }
     }
 
     post {

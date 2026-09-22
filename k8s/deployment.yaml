@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-churn-api
+  namespace: ml-prod
+  labels:
+    app: customer-churn-api
+    environment: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: customer-churn-api
+  template:
+    metadata:
+      labels:
+        app: customer-churn-api
+        environment: production
+    spec:
+      containers:
+        - name: customer-churn-api
+          image: 521024928341.dkr.ecr.ap-south-1.amazonaws.com/customer-churn-api:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: customer-churn-config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
