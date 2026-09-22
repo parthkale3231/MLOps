@@ -107,28 +107,84 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-    steps {
-        sshagent(['ec2-deploy-key']) {
-            bat """
+             steps {
+                sshagent(['ec2-deploy-key']) {
+
+                bat '''
                 @echo off
 
                 echo ========================================
                 echo Deploying to EC2: %EC2_PUBLIC_IP%
                 echo ========================================
 
-                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "bash -c \\"aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com && docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% && (docker stop customer-churn-api || true) && (docker rm customer-churn-api || true) && docker run -d --name customer-churn-api --restart unless-stopped -p 8000:8000 %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%\\""
+                echo.
+                echo Testing SSH connection...
+                
+                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "echo SSH connection successful"
 
                 if %ERRORLEVEL% NEQ 0 (
-                    echo ========================================
-                    echo EC2 deployment FAILED
-                    echo ========================================
+                    echo ERROR: SSH connection failed
                     exit /b 1
                 )
 
+                echo.
                 echo ========================================
-                echo EC2 deployment SUCCESSFUL
+                echo Logging in to ECR on EC2
                 echo ========================================
-            """
+
+                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com"
+
+                if %ERRORLEVEL% NEQ 0 (
+                    echo ERROR: ECR login failed on EC2
+                    exit /b 1
+                )
+
+                echo.
+                echo ========================================
+                echo Pulling Docker image
+                echo ========================================
+
+                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%"
+
+                if %ERRORLEVEL% NEQ 0 (
+                    echo ERROR: Docker pull failed
+                    exit /b 1
+                )
+
+                echo.
+                echo ========================================
+                echo Stopping old container
+                echo ========================================
+
+                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "docker stop customer-churn-api || true"
+
+                echo.
+                echo ========================================
+                echo Removing old container
+                echo ========================================
+
+                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "docker rm customer-churn-api || true"
+
+                echo.
+                echo ========================================
+                echo Starting new container
+                echo ========================================
+
+                ssh -o StrictHostKeyChecking=no ubuntu@%EC2_PUBLIC_IP% "docker run -d --name customer-churn-api --restart unless-stopped -p 8000:8000 %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%"
+
+                if %ERRORLEVEL% NEQ 0 (
+                    echo ERROR: Docker container failed to start
+                    exit /b 1
+                )
+
+                echo.
+                echo ========================================
+                echo Deployment successful
+                echo ========================================
+
+                echo Application:
+                echo http://%EC2_PUBLIC_IP%:8000
+            '''
         }
     }
 }
